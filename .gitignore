@@ -1,0 +1,27 @@
+# Виртуальное окружение
+.venv/
+
+# Секреты и настройки окружения
+.env
+.env.*
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Тесты и проверки
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Временные файлы
+*.log
+*.tmp
+
+# Базы данных (локальные)
+*.db
+*.sqlite3
+
+# IDE
+.idea/
