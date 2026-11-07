@@ -1,108 +1,107 @@
-import os
-import requests
-from dotenv import load_dotenv
 import logging
-import json
+import requests
 
-logging.basicConfig(filename="app.log", level=logging.ERROR,
-                    format="%(asctime)s | %(levelname)s | %(message)s", encoding="utf-8")
-
-load_dotenv()
-API_KEY = os.getenv("AUTO_RIA_API")
-if not API_KEY:
-    raise ValueError("API key not found in .env file")
-# Wrapper error log
-def api_get_json(url, params):
-    try:
-        response = requests.get(url, params=params, timeout=15)
-        response.raise_for_status()
-        return response.json()
-    except requests.HTTPError as error:
-        status_code =(error.response.status_code if error.response is not None else "Unknown")
-        logging.error("HTTP-error. Code: %s", status_code)
-        raise
-    except requests.RequestException as error:
-        logging.error("Request error. Type: %s", type(error).__name__)
-        raise
-    except ValueError:
-        logging.error("JSON parsing error")
-        raise
+from service.ria_client import (
+    get_marks,
+    get_models,
+    search_cars,
+    get_car_details
+)
+from service.car_parser import parse_car
 
 
-# 1. Получаем список марок автомобилей
-url = "https://developers.ria.com/auto/categories/1/marks"
+def find_id_by_name(items, name):
+    """Находит ID марки или модели по названию."""
 
-marks = api_get_json(url, {"api_key": API_KEY})
+    for item in items:
+        if item.get("name") == name:
+            return item.get("value")
 
-# 2. Находим ID марки BMW
-brand_id = None
+    return None
 
-for mark in marks:
-    if mark["name"] == "BMW":
-        brand_id = mark["value"]
-        break
-print("ID марки BMW:", brand_id)
 
-# 3. Получаем модели BMW
-url = f"https://developers.ria.com/auto/categories/1/marks/{brand_id}/models"
+def main():
+    # 1. Получаем список марок
+    marks = get_marks()
 
-models = api_get_json(url, {"api_key": API_KEY})
+    # 2. Находим BMW
+    brand_id = find_id_by_name(marks, "BMW")
 
-# 4. Ищем BMW 3 Series
-model_id = None
-for model in models:
-    if model["name"] == "3 Series":
-        model_id = model["value"]
-        break
-print("ID модели:", model_id)
+    if brand_id is None:
+        print("Марка BMW не найдена")
+        return
 
-# 5. Ищем объявления BMW 3 Series
-url = "https://developers.ria.com/auto/search"
-params = {
-    "api_key": API_KEY,
-    "category_id": 1,
-    "marka_id[0]": brand_id,
-    "model_id[0]": model_id,
-    "countpage": 10,
-    "page": 0
-}
+    print("ID марки BMW:", brand_id)
 
-data = api_get_json(url, params)
+    # 3. Получаем модели BMW
+    models = get_models(brand_id)
 
-# 6. Получаем ID найденных объявлений
-car_ids = data["result"]["search_result"]["ids"]
-print("Найдено объявлений:", len(car_ids))
+    # 4. Находим BMW 3 Series
+    model_id = find_id_by_name(models, "3 Series")
 
-# 7. Получаем подробную информацию по каждому автомобилю
-for car_id in car_ids:
-    try:
-        url = "https://developers.ria.com/auto/info"
+    if model_id is None:
+        print("Модель BMW 3 Series не найдена")
+        return
 
-        params = {
-            "api_key": API_KEY,
-            "auto_id": car_id
-        }
+    print("ID модели:", model_id)
 
-        car = api_get_json(url, params)
-        auto = car["autoData"]
+    # 5. Ищем объявления
+    data = search_cars(brand_id, model_id, countpage=10, page=0)
 
-        print("\n-------------------------")
-        print("ID:", car_id)
-        print("Марка:", car.get("markName"))
-        print("Модель:", car.get("modelName"))
-        print("Цена UAH:", car.get("UAH"))
-        print("Цена USD:", car.get("USD"))
-        print("Год:", auto.get("year"))
-        print("Пробег:", auto.get("race"))
-        print("Двигатель:", auto.get("fuelName"))
-        print("Коробка:", auto.get("gearboxName"))
+    # 6. Получаем ID объявлений
+    car_ids = data["result"]["search_result"]["ids"]
 
-    except requests.RequestException:
-        continue
+    print("Найдено объявлений:", len(car_ids))
+    cars = []
 
-    except (KeyError, TypeError, ValueError) as error:
-        logging.error(
-            "Ошибка обработки автомобиля ID %s. Тип: %s",
-            car_id,
-            type(error).__name__)
-        continue
+    # 7. Получаем информацию об автомобилях
+    for car_id in car_ids:
+        try:
+            car_data = get_car_details(car_id)
+
+            # Преобразуем JSON в объект Car
+            car = parse_car(car_data, car_id)
+            print("Тип топлива:", car.fuel_name)
+            print("Модификация:", car.modification_name)
+            # Проверяем, соответствует ли автомобиль поисковому запросу
+            if car.make != "BMW" or car.model != "3 Series":
+                print(
+                    f"Пропускаем неподходящий автомобиль: "
+                    f"{car.make} {car.model}, ID: {car.car_id}"
+                )
+                continue
+            cars.append(car)
+
+            print("\n-------------------------")
+            print("ID:", car.car_id)
+            print("Марка:", car.make)
+            print("Модель:", car.model)
+            print("Цена UAH:", car.price_uah)
+            print("Цена USD:", car.price_usd)
+            print("Год:", car.year)
+            print("Пробег:", car.mileage_km)
+            print("Двигатель:", car.fuel_name)
+            print("Объём двигателя:", car.engine_volume_l)
+            print("Коробка:", car.gearbox)
+            print("Привод:", car.drive_type)
+
+        except requests.RequestException:
+            logging.exception(
+                "Ошибка запроса автомобиля ID %s", car_id
+            )
+            continue
+
+        except (KeyError, TypeError, ValueError):
+            logging.exception(
+                "Ошибка обработки автомобиля ID %s", car_id
+            )
+            continue
+
+    print("\n==============================")
+    print("ИТОГИ СБОРА")
+    print("==============================")
+    print("Всего найдено объявлений:", len(car_ids))
+    print("Подходящих автомобилей:", len(cars))
+
+if __name__ == "__main__":
+    main()

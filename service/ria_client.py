@@ -2,7 +2,6 @@ import os
 import requests
 from dotenv import load_dotenv
 import logging
-import json
 
 logging.basicConfig(filename="app.log", level=logging.ERROR,
                     format="%(asctime)s | %(levelname)s | %(message)s", encoding="utf-8")
@@ -27,3 +26,31 @@ def api_get_json(url, params):
     except ValueError:
         logging.error("JSON parsing error")
         raise
+
+def get_marks():
+    url = "https://developers.ria.com/auto/categories/1/marks"
+    return api_get_json(url, {"api_key": API_KEY})
+
+def get_models(brand_id):
+    url = f"https://developers.ria.com/auto/categories/1/marks/{brand_id}/models"
+    return api_get_json(url, {"api_key": API_KEY})
+
+def search_cars(brand_id, model_id, countpage = 10, page = 0):
+    url = "https://developers.ria.com/auto/search"
+    params = {
+        "api_key": API_KEY,
+        "category_id": 1,
+        "marka_id[0]": brand_id,
+        "model_id[0]": model_id,
+        "countpage": countpage,
+        "page": page
+    }
+    return api_get_json(url, params)
+
+def get_car_details(car_id):
+    url = "https://developers.ria.com/auto/info"
+    params = {
+        "api_key": API_KEY,
+        "auto_id": car_id,
+    }
+    return api_get_json(url, params)
