@@ -4,6 +4,7 @@
 # Секреты и настройки окружения
 .env
 .env.*
+!.env.example
 
 # Python cache
 __pycache__/
@@ -25,3 +26,7 @@ htmlcov/
 
 # IDE
 .idea/
+
+# Результаты поиска AUTO.RIA
+/search/*.json
+/app/ui/search/*.json
