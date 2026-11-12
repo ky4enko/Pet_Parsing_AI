@@ -125,10 +125,10 @@ pip install -r requirements.txt
 
 ### 5. Настройка переменных окружения
 
-Создайте файл `.env` на основе `.env.example`:
+Создайте файл `.env` на основе `.env example`:
 
 ```powershell
-Copy-Item .env.example .env
+Copy-Item .env example .env
 ```
 
 Заполните необходимые API-ключи согласно шаблону `.env.example`.
@@ -147,7 +147,7 @@ python -m app.ui.main_window
 
 - API-ключи хранятся в локальном файле `.env`.
 - `.env` исключён из Git через `.gitignore`.
-- Для настройки окружения используется `.env.example`.
+- Для настройки окружения используется `.env example`.
 
 Не публикуйте реальные API-ключи и другие секретные данные в открытом репозитории.
 
