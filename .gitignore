@@ -1,7 +1,10 @@
-# Виртуальное окружение
-.venv/
 
-# Секреты и настройки окружения
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables and secrets
 .env
 .env.*
 !.env.example
@@ -9,24 +12,33 @@
 # Python cache
 __pycache__/
 *.py[cod]
+*$py.class
 
-# Тесты и проверки
+# Logs
+*.log
+app.log
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+
+# Tests and linters
 .pytest_cache/
+.mypy_cache/
 .ruff_cache/
 .coverage
 htmlcov/
 
-# Временные файлы
-*.log
-*.tmp
-
-# Базы данных (локальные)
-*.db
+# Database backups and local data
+*.dump
 *.sqlite3
+*.db
 
-# IDE
-.idea/
-
-# Результаты поиска AUTO.RIA
-/search/*.json
-/app/ui/search/*.json
+# OS
+.DS_Store
+Thumbs.db
