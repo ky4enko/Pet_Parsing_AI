@@ -1,10 +1,7 @@
 from app.localization import tr
-from PySide6.QtCore import Qt
 from qfluentwidgets import CardWidget, PrimaryPushButton
 from PySide6.QtCore import QUrl
-from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest
-
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -15,7 +12,47 @@ from PySide6.QtWidgets import (
     QTextBrowser,
     QScrollArea,
 )
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import (
+    QDesktopServices,
+    QPixmap,
+    QColor,
+    QPainter,
+    QPen,
+)
 
+class LoadingSpinner(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.angle = 0
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.rotate)
+        self.setFixedSize(22, 22)
+        self.hide()
+
+    def start(self):
+        self.timer.start(40)
+        self.show()
+
+    def stop(self):
+        self.timer.stop()
+        self.hide()
+
+    def rotate(self):
+        self.angle = (self.angle + 30) % 360
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        pen = QPen(QColor("#1689e8"), 2.5)
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        painter.setPen(pen)
+        rect = self.rect().adjusted(3, 3, -3, -3)
+        painter.drawArc(
+            rect,
+            self.angle * 16,
+            250 * 16,)
 
 class ResultsPage(QWidget):
 
@@ -50,12 +87,16 @@ class ResultsPage(QWidget):
         main_layout.addLayout(header)
 
         # Статус
+        status_layout = QHBoxLayout()
+        status_layout.setSpacing(8)
+        self.loading_spinner = LoadingSpinner(self)
         self.status_label = QLabel(
-            "Здесь появятся результаты поиска AUTO.RIA"
-        )
+            "Здесь появятся результаты поиска AUTO.RIA")
         self.status_label.setObjectName("statusLabel")
-
-        main_layout.addWidget(self.status_label)
+        status_layout.addWidget(self.loading_spinner)
+        status_layout.addWidget(self.status_label)
+        status_layout.addStretch()
+        main_layout.addLayout(status_layout)
 
         # Основная область: объявления + GPT
         content_layout = QHBoxLayout()
@@ -211,13 +252,18 @@ class ResultsPage(QWidget):
     def clear_cars(self):
         while self.cars_layout.count():
             item = self.cars_layout.takeAt(0)
-
             widget = item.widget()
-
             if widget is not None:
                 widget.deleteLater()
 
     def create_car_card(self, car):
+        """Создаёт карточку автомобиля из JSON-словаря Backend."""
+
+        if not isinstance(car, dict):
+            raise TypeError(
+                "Backend вернул автомобиль в неожиданном формате: "
+                f"{type(car).__name__}")
+
         card = CardWidget(self)
         card.setObjectName("carCard")
         card.setMinimumHeight(132)
@@ -236,34 +282,51 @@ class ResultsPage(QWidget):
         info_layout = QVBoxLayout()
         info_layout.setSpacing(6)
 
-        title = QLabel(f"{car.make} {car.model}")
+        make = car.get("make") or ""
+        model = car.get("model") or ""
+        title_text = f"{make} {model}".strip() or tr("Автомобиль")
+
+        title = QLabel(title_text)
         title.setObjectName("carTitle")
 
+        year = car.get("year")
+        mileage = car.get("mileage_km")
+
         details_parts = [
-            tr("Год: ") + str(car.year if car.year is not None else "—"),
+            tr("Год: ") + str(year if year is not None else "—"),
             tr("Пробег: ") + (
-                f"{car.mileage_km:,} {tr(' км')}"
-                if car.mileage_km is not None else "—"
-            ),
+                f"{mileage:,} {tr(' км')}"
+                if isinstance(mileage, (int, float))
+                else (
+                    f"{mileage} {tr(' км')}"
+                    if mileage is not None else "—")),
         ]
-        if getattr(car, "fuel_name", None):
-            details_parts.append(tr("Топливо: ") + str(car.fuel_name))
-        if getattr(car, "modification_name", None):
-            details_parts.append(str(car.modification_name))
+
+        fuel_name = car.get("fuel_name")
+        if fuel_name:
+            details_parts.append(tr("Топливо: ") + str(fuel_name))
+
+        modification_name = car.get("modification_name")
+        if modification_name:
+            details_parts.append(str(modification_name))
 
         details = QLabel("  •  ".join(details_parts))
         details.setObjectName("carInfo")
         details.setWordWrap(True)
 
-        price_value = car.price_usd
-        price_text = f"${price_value:,.0f}" if price_value is not None else tr("Цена не указана")
+        price_value = car.get("price_usd")
+        if isinstance(price_value, (int, float)):
+            price_text = f"${price_value:,.0f}"
+        else:
+            price_text = tr("Цена не указана")
+
         price = QLabel(price_text)
         price.setObjectName("carPrice")
 
         open_button = PrimaryPushButton(tr("Открыть объявление"))
 
         def open_car_url():
-            url = car.url or ""
+            url = str(car.get("url") or "")
             if url.startswith("/"):
                 url = "https://auto.ria.com" + url
             if url:
@@ -276,19 +339,18 @@ class ResultsPage(QWidget):
         info_layout.addWidget(open_button, 0, Qt.AlignLeft)
         outer_layout.addLayout(info_layout, 1)
 
-        photo_url = getattr(car, "photo_url", None)
+        photo_url = car.get("photo_url")
         if photo_url:
+            photo_url = str(photo_url)
             request = QNetworkRequest(QUrl(photo_url))
             # CDN AUTO.RIA может отклонять запросы без обычного User-Agent/Referer.
             request.setRawHeader(
                 b"User-Agent",
-                b"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-            )
+                b"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",)
             request.setRawHeader(b"Referer", b"https://auto.ria.com/")
             request.setAttribute(
                 QNetworkRequest.RedirectPolicyAttribute,
-                QNetworkRequest.NoLessSafeRedirectPolicy,
-            )
+                QNetworkRequest.NoLessSafeRedirectPolicy,)
             reply = self.image_network.get(request)
             self.image_replies.append(reply)
 
@@ -300,8 +362,7 @@ class ResultsPage(QWidget):
                 if loaded and not pixmap.isNull():
                     label.setPixmap(pixmap.scaled(
                         label.size(), Qt.KeepAspectRatio,
-                        Qt.SmoothTransformation
-                    ))
+                        Qt.SmoothTransformation))
                     label.setText("")
                 else:
                     status = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
@@ -309,36 +370,34 @@ class ResultsPage(QWidget):
                     import logging
                     logging.warning(
                         "Не удалось загрузить фото AUTO.RIA: url=%s, http=%s, error=%s",
-                        photo_url, status, reply.errorString()
-                    )
-
+                        photo_url, status, reply.errorString())
                 if reply in self.image_replies:
                     self.image_replies.remove(reply)
                 reply.deleteLater()
-
             reply.finished.connect(set_photo)
         else:
             photo_label.setText("Фото недоступне")
-
         return card
 
     def show_loading(self):
         self.clear_cars()
-
+        self.loading_spinner.start()
         self.count_label.setText(tr("Поиск..."))
         self.status_label.setText(
-            tr("Выполняется поиск автомобилей и анализ рынка...")
-        )
-
+            tr("Выполняется поиск..."))
         self.gpt_text.clear()
+
+    def stop_loading(self):
+        self.loading_spinner.stop()
 
     def update_status(self, message):
         self.status_label.setText(tr(message))
 
     def show_results(self, result):
+        self.stop_loading()
         self.clear_cars()
 
-        cars = result.get("cars", [])
+        cars = result.get("cars") or []
         analysis = result.get("analysis", "")
         analysis_error = result.get("analysis_error")
 
@@ -346,33 +405,22 @@ class ResultsPage(QWidget):
         failed_count = result.get("failed_count", 0)
 
         self.count_label.setText(
-            tr("Загружено: ") + str(len(cars)) + tr(" из ") + str(total_found)
-        )
-
+            tr("Загружено: ") + str(len(cars)) + tr(" из ") + str(total_found))
         self.status_label.setText(
-            tr("Не удалось загрузить: ") + str(failed_count)
-        )
-
+            tr("Не удалось загрузить: ") + str(failed_count))
         if not cars:
             self.cars_layout.addWidget(
-                QLabel(tr("Автомобили не найдены."))
-            )
+                QLabel(tr("Автомобили не найдены.")))
         else:
             for car in cars:
                 self.cars_layout.addWidget(
-                    self.create_car_card(car)
-                )
-
+                    self.create_car_card(car))
         if analysis:
             self.gpt_text.setPlainText(analysis)
-
         elif analysis_error:
             self.gpt_text.setPlainText(
                 tr("Не удалось выполнить анализ GPT.\n\n")
-                + analysis_error
-            )
-
+                + analysis_error)
         else:
             self.gpt_text.setPlainText(
-                tr("Нет данных для анализа.")
-            )
+                tr("Нет данных для анализа."))

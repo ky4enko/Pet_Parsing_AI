@@ -14,14 +14,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 
-from service.ria_client import (
-    get_marks,
-    get_models,
-    get_fuel_types,
-    get_gearboxes,
-    get_drive_types,
-)
-
+from backend_client import BackendClient
 
 class DataLoader(QThread):
     """Загружает справочники AUTO.RIA в фоновом потоке."""
@@ -52,6 +45,7 @@ class CombustionPage(QWidget):
         self.setObjectName("combustionPage")
 
         self._workers = []
+        self.backend_client = BackendClient()
 
         self.init_ui()
         self.apply_styles()
@@ -263,13 +257,12 @@ class CombustionPage(QWidget):
             self.on_references_loaded
         )
 
-    @staticmethod
-    def load_all_references():
+    def load_all_references(self):
         return {
-            "marks": get_marks(),
-            "fuel": get_fuel_types(),
-            "gearboxes": get_gearboxes(),
-            "drives": get_drive_types(),
+            "marks": self.backend_client.get_marks(),
+            "fuel": self.backend_client.get_fuel_types(),
+            "gearboxes": self.backend_client.get_gearboxes(),
+            "drives": self.backend_client.get_drive_types(),
         }
 
     def on_references_loaded(self, data):
@@ -317,7 +310,7 @@ class CombustionPage(QWidget):
         )
 
         self.run_loader(
-            get_models,
+            self.backend_client.get_models,
             self.on_models_loaded,
             brand_id
         )

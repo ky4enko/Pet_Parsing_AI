@@ -1,15 +1,11 @@
-import os
-import requests
-from dotenv import load_dotenv
 import logging
+import requests
+from backend.config import get_auto_ria_api_key
+
+API_KEY = get_auto_ria_api_key()
 
 logging.basicConfig(filename="app.log", level=logging.ERROR,
                     format="%(asctime)s | %(levelname)s | %(message)s", encoding="utf-8")
-
-load_dotenv()
-API_KEY = os.getenv("AUTO_RIA_API")
-if not API_KEY:
-    raise ValueError("API key not found in .env file")
 # Wrapper error log
 def api_get_json(url, params):
     try:
@@ -104,11 +100,11 @@ def search_cars(
 
     # Фильтр ёмкости батареи для электромобилей.
     # Имена параметров взяты из URL поиска AUTO.RIA.
-    if battery_capacity_from_kwh is not None and battery_capacity_to_kwh is not None:
-        params["all[0].any[0].accumulator_capacity[0]"] = battery_capacity_from_kwh
-        params["all[0].any[0].accumulator_capacity[1]"] = battery_capacity_to_kwh
-    elif battery_capacity_from_kwh is not None or battery_capacity_to_kwh is not None:
-        raise ValueError("Для фильтра ёмкости батареи укажи обе границы")
+    # if battery_capacity_from_kwh is not None and battery_capacity_to_kwh is not None:
+    #     params["all[0].any[0].accumulator_capacity[0]"] = battery_capacity_from_kwh
+    #     params["all[0].any[0].accumulator_capacity[1]"] = battery_capacity_to_kwh
+    # elif battery_capacity_from_kwh is not None or battery_capacity_to_kwh is not None:
+    #     raise ValueError("Для фильтра ёмкости батареи укажи обе границы")
 
     # # Фильтр запаса хода электромобиля
     # if range_from_km is not None and range_to_km is not None:

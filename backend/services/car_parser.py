@@ -1,24 +1,21 @@
 import re
-
-from app.models import CombustionCar, ElectricCar
-
+from backend.entities.car import CombustionCar, ElectricCar
 
 def parse_car(car_data: dict, car_id: int, car_type: str):
     if not isinstance(car_data, dict):
-        raise TypeError("car_data должен быть словарём")
+        raise TypeError("car_data должен быть словарем")
 
     auto = car_data.get("autoData") or {}
 
     if not isinstance(auto, dict):
-        raise TypeError("autoData должен быть словарём")
+        raise TypeError("autoData должен быть словарем")
 
     race_int = auto.get("raceInt")
 
     mileage_km = (
         int(race_int * 1000)
         if race_int is not None
-        else None
-    )
+        else None)
 
     # AUTO.RIA отдаёт ссылки на изображения в photoData.
     # В разных ответах API часть размеров может отсутствовать.
@@ -60,29 +57,20 @@ def parse_car(car_data: dict, car_id: int, car_type: str):
 
     if car_type == "electric":
         return ElectricCar(**common_data)
-
     elif car_type in ("combustion", "ice", "двс"):
         fuel_name = auto.get("fuelName")
-
         engine_volume_l = None
-
         if fuel_name:
             match = re.search(
                 r"(\d+(?:[.,]\d+)?)\s*л\.?",
                 fuel_name,
-                re.IGNORECASE
-            )
-
+                re.IGNORECASE)
             if match:
                 engine_volume_l = float(
-                    match.group(1).replace(",", ".")
-                )
-
+                    match.group(1).replace(",", "."))
         return CombustionCar(
             **common_data,
             fuel_name=fuel_name,
-            engine_volume_l=engine_volume_l
-        )
-
+            engine_volume_l=engine_volume_l)
     else:
         raise ValueError(f"Неизвестный тип автомобиля: {car_type}")

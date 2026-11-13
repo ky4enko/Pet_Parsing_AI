@@ -1,13 +1,10 @@
-from app.models import CombustionCar, ElectricCar
-
+from backend.entities.car import CombustionCar, ElectricCar
 
 class CarFilter:
     """Фільтри для вже отриманих оголошень.
-
     Загальні критерії (рік і пробіг) застосовуються до обох типів.
     Фільтри пального, об'єму двигуна, КПП та приводу застосовуються
     лише до CombustionCar. ElectricCar ці фільтри пропускає.
-
     Важливо: цей клас фільтрує локально вже завантажені об'єкти.
     Серверні параметри пошуку формуються в main.py / ria_client.py.
     """
@@ -34,15 +31,13 @@ class CarFilter:
         minimum = target_year - year_range
         maximum = target_year + year_range
         return self._apply_filter(
-            lambda car: self._in_range(car.year, minimum, maximum)
-        )
+            lambda car: self._in_range(car.year, minimum, maximum))
 
     def filter_by_mileage(self, target_mileage, mileage_range=50_000):
         minimum = max(0, target_mileage - mileage_range)
         maximum = target_mileage + mileage_range
         return self._apply_filter(
-            lambda car: self._in_range(car.mileage_km, minimum, maximum)
-        )
+            lambda car: self._in_range(car.mileage_km, minimum, maximum))
 
     # Наступні фільтри стосуються лише ДВС/дизеля/гібридів.
     # Електромобілі залишаються у вибірці без перевірки цих полів.
@@ -56,7 +51,6 @@ class CarFilter:
                 return False
             actual = self._normalize_text(car.fuel_name.split(",")[0])
             return actual == target
-
         return self._apply_filter(check)
 
     def filter_by_engine_volume(self, target_volume, volume_range=0.5):
@@ -69,7 +63,6 @@ class CarFilter:
             if not isinstance(car, CombustionCar):
                 return False
             return self._in_range(car.engine_volume_l, minimum, maximum)
-
         return self._apply_filter(check)
 
     def filter_by_gearbox(self, target_gearbox):
@@ -81,7 +74,6 @@ class CarFilter:
             if not isinstance(car, CombustionCar):
                 return False
             return self._normalize_text(car.gearbox) == target
-
         return self._apply_filter(check)
 
     def filter_by_drive_type(self, target_drive_type):
@@ -93,7 +85,6 @@ class CarFilter:
             if not isinstance(car, CombustionCar):
                 return False
             return self._normalize_text(car.drive_type) == target
-
         return self._apply_filter(check)
 
     def get_results(self):

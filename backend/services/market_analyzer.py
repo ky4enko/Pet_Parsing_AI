@@ -2,15 +2,10 @@ import json
 import os
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
-
-from openai import OpenAI
-from dotenv import load_dotenv
-
-
-load_dotenv()
+from backend.config import SEARCH_DIR
+from backend.integrations.openai_client import generate_market_analysis
 
 DEFAULT_MODEL = "gpt-6.1-terra"
-
 
 SYSTEM_PROMPT = """
 Ты — профессиональный аналитик рынка подержанных автомобилей Украины.
@@ -52,7 +47,7 @@ def car_to_dict(car):
 
     if is_dataclass(car):
         data = asdict(car)
-        data.pop("photo_url", None)  # URL фото не нужна GPT-анализу
+        data.pop("photo_url", None)
         return data
 
     fields = [
@@ -84,23 +79,19 @@ def build_market_payload(search_info, cars):
         "search_info": search_info,
         "cars": [
             car_to_dict(car)
-            for car in cars
-        ]
+            for car in cars]
     }
 
 
 def save_market_payload(
     payload,
-    path="search_results.json"
-):
+    path=SEARCH_DIR / "search_results.json",):
     """Сохраняет исходные объявления в JSON."""
 
     output_path = Path(path)
-
     output_path.parent.mkdir(
         parents=True,
-        exist_ok=True
-    )
+        exist_ok=True)
 
     with open(output_path, "w", encoding="utf-8") as file:
         json.dump(
@@ -108,9 +99,7 @@ def save_market_payload(
             file,
             ensure_ascii=False,
             indent=4,
-            default=str
-        )
-
+            default=str)
     return output_path
 
 
@@ -118,87 +107,57 @@ def analyze_market(
     payload,
     model=None,
     max_output_tokens=4000,
-    language="ru"
-):
+    language="ru"):
     """Отправляет объявления GPT и возвращает текстовый анализ."""
 
-    api_key = os.getenv("OPENAI_API_KEY")
-
-    if not api_key:
-        raise RuntimeError(
-            "Не найден OPENAI_API_KEY. Проверь файл .env."
-        )
-
     if not payload.get("cars"):
-        raise ValueError(
-            "Нет автомобилей для анализа."
-        )
+        raise ValueError("Нет автомобилей для анализа.")
 
-    client = OpenAI(api_key=api_key)
+    language_names = {
+        "ru": "Russian",
+        "uk": "Ukrainian",
+        "en": "English",
+    }
 
-    language_names = {"ru": "Russian", "uk": "Ukrainian", "en": "English"}
     output_language = language_names.get(language, "Russian")
 
-    response = client.responses.create(
-        model=model or os.getenv(
-            "OPENAI_MODEL",
-            DEFAULT_MODEL
-        ),
+    instructions = (
+        SYSTEM_PROMPT.replace(
+            "Отвечай обычным текстом на русском языке.",
+            f"Write in {output_language}.")
+        + f"\n\nWrite the complete analysis in {output_language}. "
+          "All headings, explanations and conclusions must use this language.")
 
-        instructions=SYSTEM_PROMPT.replace("Отвечай обычным текстом на русском языке.", f"Write in {output_language}.") + f"\n\nWrite the complete analysis in {output_language}. All headings, explanations and conclusions must use this language.",
+    input_text = (
+        f"Analyze the following AUTO.RIA listings. "
+        f"Write the complete response in {output_language}; "
+        "do not use JSON. "
+        "Calculate metrics only from prices actually present "
+        "in the supplied data.\n\n"
+        + json.dumps(
+            payload,
+            ensure_ascii=False,
+            default=str))
 
-        input=(
-            f"Analyze the following AUTO.RIA listings. Write the complete response in {output_language}; do not use JSON. "
-            "Calculate metrics only from prices actually present in the supplied data.\n\n"
-            + json.dumps(
-                payload,
-                ensure_ascii=False,
-                default=str
-            )
-        ),
+    selected_model = model or os.getenv(
+        "OPENAI_MODEL",
+        DEFAULT_MODEL)
 
-        max_output_tokens=max_output_tokens,
-
-        store=False
-    )
-
-    if response.status != "completed":
-        details = getattr(
-            response,
-            "incomplete_details",
-            None
-        )
-
-        raise RuntimeError(
-            "GPT не завершил формирование ответа. "
-            f"Статус: {response.status}. "
-            f"Подробности: {details}"
-        )
-
-    analysis_text = response.output_text
-
-    if not analysis_text or not analysis_text.strip():
-        raise RuntimeError(
-            "GPT вернул пустой ответ."
-        )
-
-    return analysis_text.strip()
+    return generate_market_analysis(
+        model=selected_model,
+        instructions=instructions,
+        input_text=input_text,
+        max_output_tokens=max_output_tokens,)
 
 
 def save_analysis(
     analysis,
-    path="ai_analysis.txt"
-):
-    """Сохраняет текстовый анализ в TXT, если это понадобится."""
-
+    path=SEARCH_DIR / "ai_analysis.txt",):
+    """Сохраняет текстовый анализ в TXT."""
     output_path = Path(path)
-
     output_path.parent.mkdir(
         parents=True,
-        exist_ok=True
-    )
-
+        exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as file:
         file.write(str(analysis))
-
     return output_path

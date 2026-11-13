@@ -432,17 +432,12 @@ class MainWindow(FluentWindow):
     # --------------------------------------------------
 
     def start_search(self, search_data):
-
         if self.search_worker is not None:
-
             if self.search_worker.isRunning():
-
                 QMessageBox.warning(
                     self,
                     self.localization.tr("Поиск уже выполняется"),
-                    self.localization.tr("Дождитесь завершения текущего поиска.")
-                )
-
+                    self.localization.tr("Дождитесь завершения текущего поиска."))
                 return
 
         # Открываем страницу результатов
@@ -451,41 +446,28 @@ class MainWindow(FluentWindow):
 
         # Создаём фоновый поток
         self.search_worker = SearchWorker(search_data, self.localization.language)
-
         self.search_worker.progressChanged.connect(
-            self.results_page.update_status
-        )
-
+            self.results_page.update_status)
         self.search_worker.resultReady.connect(
-            self.on_search_finished
-        )
-
+            self.on_search_finished)
         self.search_worker.errorOccurred.connect(
-            self.on_search_error
-        )
-
+            self.on_search_error)
         self.search_worker.start()
 
     def on_search_finished(self, result):
-
         self.results_page.show_results(result)
-
         if self.search_worker is not None:
             self.search_worker.deleteLater()
             self.search_worker = None
 
     def on_search_error(self, error):
-
+        self.results_page.stop_loading()
         self.results_page.update_status(
-            self.localization.tr("Произошла ошибка при выполнении поиска.")
-        )
-
+            self.localization.tr("Произошла ошибка при выполнении поиска."))
         QMessageBox.critical(
             self,
             self.localization.tr("Ошибка поиска"),
-            str(error)
-        )
-
+            str(error))
         if self.search_worker is not None:
             self.search_worker.deleteLater()
             self.search_worker = None

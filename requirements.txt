@@ -1,15 +1,26 @@
 # Pet_Parsing_AI — runtime dependencies
 # Install with: python -m pip install -r requirements.txt
 
-# Desktop UI
-PySide6>=6.8
-PySide6-Fluent-Widgets>=1.8
+# Desktop application
+PySide6==6.12.0
+PySide6-Fluent-Widgets==1.11.3
 
-# HTTP requests to AUTO.RIA and image CDN
-requests>=2.32
+# HTTP requests
+requests==2.34.2
 
-# Load API keys from .env
-python-dotenv>=1.0
+# Environment variables
+python-dotenv==1.2.4
 
-# OpenAI API client
-openai>=1.0
+# OpenAI API
+openai==3.46.0
+
+# Backend - FastAPI
+fastapi==0.162.5
+uvicorn[standard]==0.54.0
+
+# Database - PostgreSQL
+SQLAlchemy==2.1.8
+psycopg[binary]==3.3.9
+
+# Data validation
+pydantic==2.14.3
