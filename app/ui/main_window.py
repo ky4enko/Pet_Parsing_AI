@@ -1,6 +1,4 @@
-
 import sys
-
 from PySide6.QtCore import Qt, QEvent
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
@@ -26,6 +24,7 @@ from app.ui.home_page import HomePage
 from app.ui.combustion_page import CombustionPage
 from app.ui.electric_page import ElectricPage
 from app.ui.results_page import ResultsPage
+from app.ui.history_page import HistoryPage
 from app.ui.search_worker import SearchWorker
 from app.ui.theme_manager import ThemeManager
 from app.ui.theme_dialog import ThemeDialog
@@ -45,6 +44,7 @@ class MainWindow(FluentWindow):
 
         self.background_labels = {}
         self.search_worker = None
+        self._results_source = None
         self.localization = Localization()
         self.language_buttons = {}
         self.language_menu_open = False
@@ -63,10 +63,7 @@ class MainWindow(FluentWindow):
         # Применяем сохранённую тему при запуске
         self.apply_theme()
 
-    # --------------------------------------------------
-    # ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКА
-    # --------------------------------------------------
-
+    # язык
     def create_language_switcher(self):
         """Единый компактный переключатель языка в правом нижнем углу."""
         self.language_container = QFrame(self)
@@ -164,8 +161,11 @@ class MainWindow(FluentWindow):
     def apply_language(self, language):
         """Обновляет подписи всех страниц и открытых окон."""
         for widget in (self, self.home_page, self.combustion_page,
-                       self.electric_page, self.results_page):
+                       self.electric_page, self.results_page,
+                       self.history_page):
             translate_widget_tree(widget, language)
+
+        self.history_page.retranslate()
 
         if self.theme_dialog is not None and self.theme_dialog.isVisible():
             translate_widget_tree(self.theme_dialog, language)
@@ -174,16 +174,14 @@ class MainWindow(FluentWindow):
         self.language_menu_open = False
         self.position_language_switcher()
 
-    # --------------------------------------------------
     # НАВИГАЦИЯ
-    # --------------------------------------------------
-
     def init_navigation(self):
 
         self.home_page = HomePage()
         self.combustion_page = CombustionPage()
         self.electric_page = ElectricPage()
         self.results_page = ResultsPage()
+        self.history_page = HistoryPage()
 
         self.addSubInterface(
             self.home_page,
@@ -209,6 +207,13 @@ class MainWindow(FluentWindow):
             "Результаты",
         )
 
+        self.addSubInterface(
+            self.history_page,
+            FluentIcon.HISTORY,
+            "История",
+        )
+
+
         # Кнопка оформления внизу панели
         self.navigationInterface.addItem(
             routeKey="theme_settings",
@@ -219,12 +224,28 @@ class MainWindow(FluentWindow):
             position=NavigationItemPosition.BOTTOM,
         )
 
+        return_button = self.navigationInterface.panel.returnButton
+        try:
+            return_button.clicked.disconnect()
+        except (RuntimeError, TypeError):
+            pass
+        return_button.clicked.connect(self.return_to_home)
+        return_button.setToolTip("На главную")
+
+        # Собственный обработчик кнопки «Назад»
+        return_button = self.navigationInterface.panel.returnButton
+
+        try:
+            return_button.clicked.disconnect()
+        except (RuntimeError, TypeError):
+            pass
+
+        return_button.clicked.connect(self.return_to_home)
+        return_button.setToolTip("Назад")
+
         self.switchTo(self.home_page)
 
-    # --------------------------------------------------
     # ОФОРМЛЕНИЕ БОКОВОЙ ПАНЕЛИ
-    # --------------------------------------------------
-
     def apply_navigation_style(self):
 
         nav = self.navigationInterface
@@ -237,7 +258,6 @@ class MainWindow(FluentWindow):
             }
         """)
 
-        # Настоящее мягкое оранжевое свечение панели
         self.navigation_glow = QGraphicsDropShadowEffect(nav)
         self.navigation_glow.setBlurRadius(35)
         self.navigation_glow.setOffset(3, 0)
@@ -277,17 +297,14 @@ class MainWindow(FluentWindow):
             }
         """
 
-        # Применяем стили непосредственно к кнопкам
+
         buttons = nav.findChildren(QAbstractButton)
 
         for button in buttons:
             button.setStyleSheet(button_style)
             button.setAttribute(Qt.WA_Hover, True)
 
-    # --------------------------------------------------
     # ОКНО ПЕРСОНАЛИЗАЦИИ
-    # --------------------------------------------------
-
     def open_theme_dialog(self):
 
         self.theme_dialog = ThemeDialog(
@@ -302,10 +319,7 @@ class MainWindow(FluentWindow):
         translate_widget_tree(self.theme_dialog, self.localization.language)
         self.theme_dialog.exec()
 
-    # --------------------------------------------------
     # ФОНОВОЕ ИЗОБРАЖЕНИЕ
-    # --------------------------------------------------
-
     def apply_theme(self):
         """Устанавливает выбранный фон на всех страницах."""
 
@@ -314,6 +328,7 @@ class MainWindow(FluentWindow):
             self.combustion_page,
             self.electric_page,
             self.results_page,
+            self.history_page,
         ]
 
         for page in pages:
@@ -380,6 +395,45 @@ class MainWindow(FluentWindow):
         background.show()
         overlay.show()
 
+    def return_to_home(self):
+        """
+        Поведение стрелки:
+        - обычный поиск -> Главная;
+        - отчёт из истории -> История;
+        - список истории -> Главная.
+        """
+
+        current_page = self.stackedWidget.currentWidget()
+
+        # Если открыт отчёт из истории,
+        # сначала возвращаемся к списку отчётов.
+        if (
+                current_page is self.results_page
+                and self._results_source == "history"
+        ):
+            self._results_source = None
+            self.switchTo(self.history_page)
+            return
+
+        # Во всех остальных случаях возвращаемся на Главную.
+        self._results_source = None
+        self.switchTo(self.home_page)
+
+        # Очищаем старую историю переходов.
+        router = self.navigationInterface.panel.history
+
+        stacked_history = router.stackHistories.get(self.stackedWidget)
+
+        if stacked_history is not None:
+            stacked_history.history = [self.home_page.objectName()]
+
+        router.history = [
+            item for item in router.history
+            if item.stacked is not self.stackedWidget
+        ]
+
+        router.emptyChanged.emit(not bool(router.history))
+
     def switchTo(self, interface):
         """Показывает переключатель языка только на главной странице."""
         super().switchTo(interface)
@@ -427,10 +481,19 @@ class MainWindow(FluentWindow):
             self.start_search
         )
 
-    # --------------------------------------------------
-    # ПОИСК АВТОМОБИЛЕЙ
-    # --------------------------------------------------
+        self.history_page.resultRequested.connect(
+            self.show_history_result
+        )
 
+    # РЕЗУЛЬТАТ ИЗ ИСТОРИИ
+    def show_history_result(self, result):
+        """Открывает сохранённый отчёт из истории."""
+        self._results_source = "history"
+
+        self.results_page.show_results(result)
+        self.switchTo(self.results_page)
+
+    # ПОИСК АВТОМОБИЛЕЙ
     def start_search(self, search_data):
         if self.search_worker is not None:
             if self.search_worker.isRunning():
@@ -441,6 +504,7 @@ class MainWindow(FluentWindow):
                 return
 
         # Открываем страницу результатов
+        self._results_source = "search"
         self.switchTo(self.results_page)
         self.results_page.show_loading()
 
@@ -461,9 +525,7 @@ class MainWindow(FluentWindow):
             self.search_worker = None
 
     def on_search_error(self, error):
-        self.results_page.stop_loading()
-        self.results_page.update_status(
-            self.localization.tr("Произошла ошибка при выполнении поиска."))
+        self.results_page.show_error(error)
         QMessageBox.critical(
             self,
             self.localization.tr("Ошибка поиска"),
@@ -473,10 +535,8 @@ class MainWindow(FluentWindow):
             self.search_worker = None
 
 
-# ------------------------------------------------------
-# ЗАПУСК ПРИЛОЖЕНИЯ
-# ------------------------------------------------------
 
+# ЗАПУСК ПРИЛОЖЕНИЯ
 if __name__ == "__main__":
 
     app = QApplication(sys.argv)

@@ -3,7 +3,6 @@ from PySide6.QtCore import QThread, Signal, QSettings
 from backend_client import BackendClient
 from app.localization import translate_text
 
-
 class SearchWorker(QThread):
     progressChanged = Signal(str)
     resultReady = Signal(dict)
@@ -28,6 +27,7 @@ class SearchWorker(QThread):
     def run(self):
         try:
             self.emit_progress("Выполняется поиск...")
+            # Отправляем поиск на сервер
             result = self.backend_client.create_search(
                 self.search_data,
                 language=self.language)

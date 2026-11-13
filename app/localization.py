@@ -6,6 +6,37 @@ TRANSLATIONS = {
     "ДВС / Гибрид": {"uk": "ДВЗ / Гібрид", "en": "ICE / Hybrid"},
     "Электромобили": {"uk": "Електромобілі", "en": "Electric vehicles"},
     "Результаты": {"uk": "Результати", "en": "Results"},
+    "Открыты сохранённые результаты поиска.": {"uk": "Відкрито збережені результати пошуку.", "en": "Saved search results opened."},
+    "История": {"uk": "Історія", "en": "History"},
+    "История поисков": {"uk": "Історія пошуків", "en": "Search history"},
+    "Ранее выполненные поиски и сохранённые результаты.": {"uk": "Раніше виконані пошуки та збережені результати.", "en": "Previous searches and saved results."},
+    "Обновить": {"uk": "Оновити", "en": "Refresh"},
+    "Загрузить ещё": {"uk": "Завантажити ще", "en": "Load more"},
+    "Загружаем ещё записи...": {"uk": "Завантажуємо наступні записи...", "en": "Loading more records..."},
+    "Поисков: ": {"uk": "Пошуків: ", "en": "Searches: "},
+    "История недоступна": {"uk": "Історія недоступна", "en": "History unavailable"},
+    "Загружаем историю поисков...": {"uk": "Завантажуємо історію пошуків...", "en": "Loading search history..."},
+    "Не удалось загрузить историю.": {"uk": "Не вдалося завантажити історію.", "en": "Could not load search history."},
+    "Пока нет сохранённых поисков. Начните поиск — он появится здесь.": {"uk": "Поки немає збережених пошуків. Почніть пошук — він з’явиться тут.", "en": "No saved searches yet. Run a search and it will appear here."},
+    "История временно недоступна. Нажмите «Обновить», чтобы повторить запрос.": {"uk": "Історія тимчасово недоступна. Натисніть «Оновити», щоб повторити запит.", "en": "History is temporarily unavailable. Press “Refresh” to try again."},
+    "Загружаем сохранённый поиск": {"uk": "Завантажуємо збережений пошук", "en": "Loading saved search"},
+    "Не удалось открыть сохранённый поиск.": {"uk": "Не вдалося відкрити збережений пошук.", "en": "Could not open the saved search."},
+    "Backend вернул некорректный формат истории.": {"uk": "Backend повернув некоректний формат історії.", "en": "Backend returned an invalid history format."},
+    "Backend вернул некорректный формат поиска.": {"uk": "Backend повернув некоректний формат пошуку.", "en": "Backend returned an invalid search format."},
+    "Завершён": {"uk": "Завершено", "en": "Completed"},
+    "Ошибка": {"uk": "Помилка", "en": "Failed"},
+    "В процессе": {"uk": "У процесі", "en": "In progress"},
+    "Неизвестно": {"uk": "Невідомо", "en": "Unknown"},
+    "Дата не указана": {"uk": "Дату не вказано", "en": "Date not specified"},
+    "Электромобиль": {"uk": "Електромобіль", "en": "Electric vehicle"},
+    "Поиск": {"uk": "Пошук", "en": "Search"},
+    "Открыть": {"uk": "Відкрити", "en": "Open"},
+    "Параметры не указаны": {"uk": "Параметри не вказано", "en": "No parameters specified"},
+    "Год": {"uk": "Рік", "en": "Year"},
+    "Пробег": {"uk": "Пробіг", "en": "Mileage"},
+    "км": {"uk": "км", "en": "km"},
+    "Двигатель": {"uk": "Двигун", "en": "Engine"},
+    "л": {"uk": "л", "en": "L"},
     "Оформление": {"uk": "Оформлення", "en": "Appearance"},
     "AUTO.RIA Analyzer": {"uk": "AUTO.RIA Analyzer", "en": "AUTO.RIA Analyzer"},
     "AUTO.RIA ANALYZER": {"uk": "AUTO.RIA ANALYZER", "en": "AUTO.RIA ANALYZER"},
@@ -99,6 +130,10 @@ TRANSLATIONS = {
     " л": {"uk": " л", "en": " L"},
 }
 
+
+# Додаткові переклади для динамічних і раніше пропущених елементів інтерфейсу.
+TRANSLATIONS.update({'Объявления AUTO.RIA и аналитика рыночной стоимости': {'uk': 'Оголошення AUTO.RIA та аналітика ринкової вартості', 'en': 'AUTO.RIA listings and market value analysis'}, 'Загружено автомобилей': {'uk': 'Завантажено автомобілів', 'en': 'Vehicles loaded'}, 'Найдено объявлений': {'uk': 'Знайдено оголошень', 'en': 'Listings found'}, 'Не удалось загрузить': {'uk': 'Не вдалося завантажити', 'en': 'Failed to load'}, 'Оценка цен, сравнение объявлений и выводы': {'uk': 'Оцінка цін, порівняння оголошень і висновки', 'en': 'Price estimates, listing comparisons and insights'}, 'Фото AUTO.RIA': {'uk': 'Фото AUTO.RIA', 'en': 'AUTO.RIA photo'}, 'Характеристики не указаны': {'uk': 'Характеристики не вказані', 'en': 'Specifications not provided'}, 'Автомобиль': {'uk': 'Автомобіль', 'en': 'Vehicle'}, 'Цена не указана': {'uk': 'Ціну не вказано', 'en': 'Price not provided'}, 'Фото недоступно': {'uk': 'Фото недоступне', 'en': 'Photo unavailable'}, 'Поиск выполняется': {'uk': 'Пошук виконується', 'en': 'Search in progress'}, 'Выполняется поиск на Backend...': {'uk': 'Виконується пошук на Backend...', 'en': 'Searching via the backend...'}, 'Не удалось завершить поиск. Подробности в сообщении об ошибке.': {'uk': 'Не вдалося завершити пошук. Подробиці наведено в повідомленні про помилку.', 'en': 'Search could not be completed. See the error message for details.'}, 'Загружено': {'uk': 'Завантажено', 'en': 'Loaded'}, 'Поиск завершился с ошибкой при загрузке объявлений.': {'uk': 'Пошук завершився з помилкою під час завантаження оголошень.', 'en': 'Search failed while loading listings.'}, 'Поиск завершён. Получен ответ от Backend.': {'uk': 'Пошук завершено. Отримано відповідь від Backend.', 'en': 'Search completed. Response received from the backend.'}, 'Автомобили не найдены': {'uk': 'Автомобілі не знайдено', 'en': 'No vehicles found'}, 'Backend завершил поиск, но подходящих объявлений нет. Попробуйте изменить параметры поиска.': {'uk': 'Backend завершив пошук, але відповідних оголошень немає. Спробуйте змінити параметри пошуку.', 'en': 'The backend completed the search, but no matching listings were found. Try changing the search parameters.'}, 'GPT-анализ не запускался, потому что объявления не найдены.': {'uk': 'GPT-аналіз не запускався, оскільки оголошень не знайдено.', 'en': 'GPT analysis was not started because no listings were found.'}, 'Backend не вернул текст GPT-анализа.': {'uk': 'Backend не повернув текст GPT-аналізу.', 'en': 'The backend did not return GPT analysis text.'}, 'В справочнике AUTO.RIA не найдены марки из каталога электромобилей.': {'uk': 'У довіднику AUTO.RIA не знайдено марок із каталогу електромобілів.', 'en': 'No makes from the electric vehicle catalog were found in the AUTO.RIA reference data.'}, 'Не удалось определить тип топлива «Електро». Поиск временно недоступен.': {'uk': 'Не вдалося визначити тип пального «Електро». Пошук тимчасово недоступний.', 'en': 'Could not identify the “Electric” fuel type. Search is temporarily unavailable.'}, 'Для этой марки пока нет моделей, совпадающих с каталогом электромобилей.': {'uk': 'Для цієї марки поки немає моделей, що відповідають каталогу електромобілів.', 'en': 'There are currently no models for this make that match the electric vehicle catalog.'}, 'Не определён тип топлива': {'uk': 'Не визначено тип пального', 'en': 'Fuel type not identified'}, 'Не удалось определить ID топлива «Електро» в справочнике AUTO.RIA.': {'uk': 'Не вдалося визначити ID пального «Електро» в довіднику AUTO.RIA.', 'en': 'Could not identify the “Electric” fuel ID in the AUTO.RIA reference data.'}, 'Начните вводить марку...': {'uk': 'Почніть вводити марку...', 'en': 'Start typing a make...'}, 'Начните вводить модель...': {'uk': 'Почніть вводити модель...', 'en': 'Start typing a model...'}, 'Поиск ': {'uk': 'Пошук ', 'en': 'Search '}, 'Загружаем сохранённый поиск ': {'uk': 'Завантажуємо збережений пошук ', 'en': 'Loading saved search '}, 'На главную': {'uk': 'На головну', 'en': 'Home'}, 'Backend вернул автомобиль в неожиданном формате: ': {'uk': 'Backend повернув автомобіль у неочікуваному форматі: ', 'en': 'Backend returned a car in an unexpected format: '}, 'Backend вернул неожиданный формат ответа: ': {'uk': 'Backend повернув неочікуваний формат відповіді: ', 'en': 'Backend returned an unexpected response format: '}, 'Выполняется поиск...': {'uk': 'Виконується пошук...', 'en': 'Searching...'}})
+
 class Localization(QObject):
     languageChanged = Signal(str)
     LANGUAGES = {"ru": "RU", "uk": "UA", "en": "EN"}
@@ -122,49 +157,129 @@ class Localization(QObject):
     def tr(self, text: str) -> str:
         if self.language == "ru":
             return text
-        return TRANSLATIONS.get(text, {}).get(self.language, text)
+        return translate_text(text, self.language)
+
+
+
+def _resolve_translation(text: str):
+    """Возвращает исходный ключ и хвост динамической строки, если ключ найден."""
+    if not isinstance(text, str):
+        return None
+
+    # Сначала точное совпадение с исходной строкой или одним из переводов.
+    for source, variants in TRANSLATIONS.items():
+        if text == source or text in variants.values():
+            return source, ""
+
+    # Затем ищем самый длинный префикс для строк с динамическим окончанием:
+    # например, «Поиск #14» или «Поисков: 20».
+    matches = []
+    for source, variants in TRANSLATIONS.items():
+        prefixes = (source, *variants.values())
+        for prefix in prefixes:
+            if prefix and prefix[-1].isspace() and text.startswith(prefix):
+                matches.append((len(prefix), source, text[len(prefix):]))
+
+    if not matches:
+        return None
+
+    _, source, suffix = max(matches, key=lambda item: item[0])
+    return source, suffix
 
 
 def translate_text(text: str, language: str) -> str:
-    if language == "ru":
+    """Переводит точные UI-строки и поддерживает динамические суффиксы."""
+    if not isinstance(text, str):
         return text
-    return TRANSLATIONS.get(text, {}).get(language, text)
+
+    resolved = _resolve_translation(text)
+    if resolved is None:
+        return text
+
+    source, suffix = resolved
+    if language not in ("ru", "uk", "en"):
+        return text
+
+    translated = TRANSLATIONS.get(source, {}).get(language, source)
+    return translated + suffix
 
 
 def translate_widget_tree(root, language: str):
-    """Переводит стандартные текстовые свойства всех дочерних Qt-виджетов."""
+    """Переводит подписи, подсказки и плейсхолдеры во всём дереве Qt-виджетов."""
+    from PySide6.QtGui import QAction
     from PySide6.QtWidgets import (
-        QLabel, QPushButton, QToolButton, QComboBox, QSpinBox,
-        QDoubleSpinBox, QLineEdit, QTextEdit, QPlainTextEdit,
-        QGroupBox, QCheckBox, QRadioButton
+        QWidget,
+        QLabel,
+        QPushButton,
+        QToolButton,
+        QComboBox,
+        QSpinBox,
+        QDoubleSpinBox,
+        QLineEdit,
+        QTextEdit,
+        QTextBrowser,
+        QPlainTextEdit,
+        QGroupBox,
+        QCheckBox,
+        QRadioButton,
     )
 
-    reverse = {}
-    for source, variants in TRANSLATIONS.items():
-        reverse[source] = source
-        for translated in variants.values():
-            reverse[translated] = source
+    widgets = [root] + root.findChildren(QWidget)
 
-    def translated(value):
-        source = reverse.get(value, value)
-        return translate_text(source, language)
-
-    widgets = [root] + root.findChildren(__import__('PySide6.QtWidgets', fromlist=['QWidget']).QWidget)
     for widget in widgets:
-        if isinstance(widget, (QLabel, QPushButton, QToolButton, QCheckBox, QRadioButton, QGroupBox)):
-            widget.setText(translated(widget.text()))
+        if isinstance(
+            widget,
+            (QLabel, QPushButton, QToolButton, QCheckBox, QRadioButton, QGroupBox),
+        ):
+            widget.setText(translate_text(widget.text(), language))
+
         elif isinstance(widget, QComboBox):
             for index in range(widget.count()):
-                widget.setItemText(index, translated(widget.itemText(index)))
-        elif isinstance(widget, (QSpinBox, QDoubleSpinBox)):
-            widget.setSuffix(translated(widget.suffix()))
-        elif isinstance(widget, QLineEdit):
-            widget.setPlaceholderText(translated(widget.placeholderText()))
-        elif isinstance(widget, (QTextEdit, QPlainTextEdit)):
-            widget.setPlaceholderText(translated(widget.placeholderText()))
+                widget.setItemText(
+                    index,
+                    translate_text(widget.itemText(index), language),
+                )
+            if widget.isEditable() and widget.lineEdit() is not None:
+                widget.lineEdit().setPlaceholderText(
+                    translate_text(widget.lineEdit().placeholderText(), language)
+                )
 
-    if hasattr(root, "windowTitle"):
-        root.setWindowTitle(translated(root.windowTitle()))
+        elif isinstance(widget, (QSpinBox, QDoubleSpinBox)):
+            widget.setSuffix(translate_text(widget.suffix(), language))
+
+        elif isinstance(widget, QLineEdit):
+            widget.setPlaceholderText(
+                translate_text(widget.placeholderText(), language)
+            )
+
+        elif isinstance(widget, QTextBrowser):
+            widget.setPlaceholderText(
+                translate_text(widget.placeholderText(), language)
+            )
+            current_text = widget.toPlainText()
+            # Переводим только известные UI-сообщения. Текст GPT-отчёта не меняем.
+            if _resolve_translation(current_text) is not None:
+                widget.setPlainText(translate_text(current_text, language))
+
+        elif isinstance(widget, (QTextEdit, QPlainTextEdit)):
+            widget.setPlaceholderText(
+                translate_text(widget.placeholderText(), language)
+            )
+
+        tooltip = widget.toolTip()
+        if tooltip:
+            widget.setToolTip(translate_text(tooltip, language))
+
+        title = widget.windowTitle()
+        if title:
+            widget.setWindowTitle(translate_text(title, language))
+
+    # QAction не является QWidget, поэтому обрабатываем отдельно.
+    for action in root.findChildren(QAction):
+        action.setText(translate_text(action.text(), language))
+        if action.toolTip():
+            action.setToolTip(translate_text(action.toolTip(), language))
+
 
 def tr(text: str) -> str:
     settings = QSettings("PetParsingAI", "ThemeSettings")

@@ -1,12 +1,14 @@
 import unicodedata
 from app.localization import tr
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import Qt, QThread, Signal, QEvent
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QFormLayout,
     QLabel,
     QComboBox,
+    QToolButton,
+    QCompleter,
     QSpinBox,
     QPushButton,
     QFrame,
@@ -110,10 +112,12 @@ def normalize_name(value):
         if not unicodedata.combining(character))
     return "".join(character for character in normalized if character.isalnum())
 
+
 def get_brand_key(brand_name):
     """Возвращает ключ марки из каталога электромобилей."""
     normalized = normalize_name(brand_name)
     return BRAND_ALIASES.get(normalized, normalized)
+
 
 def is_electric_model(model_name, allowed_models):
     """Проверяет, входит ли модель из AUTO.RIA в каталог BEV-моделей."""
@@ -131,13 +135,16 @@ def is_electric_model(model_name, allowed_models):
             return True
     return False
 
+
 class DataLoader(QThread):
     resultReady = Signal(object)
     errorOccurred = Signal(str)
+
     def __init__(self, function, *args):
         super().__init__()
         self.function = function
         self.args = args
+
     def run(self):
         try:
             result = self.function(*self.args)
@@ -145,8 +152,10 @@ class DataLoader(QThread):
         except Exception as error:
             self.errorOccurred.emit(str(error))
 
+
 class ElectricPage(QWidget):
     searchRequested = Signal(dict)
+
     def __init__(self):
         super().__init__()
         self.setObjectName("electricPage")
@@ -156,6 +165,23 @@ class ElectricPage(QWidget):
         self.init_ui()
         self.apply_styles()
         self.load_references()
+
+    @staticmethod
+    def make_searchable(combo, placeholder):
+        """Разрешает искать марку или модель вводом текста."""
+        combo.setEditable(True)
+        combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        combo.setMaxVisibleItems(15)
+
+        line_edit = combo.lineEdit()
+        line_edit.setPlaceholderText(tr(placeholder))
+        line_edit.setClearButtonEnabled(True)
+
+        completer = QCompleter(combo.model(), combo)
+        completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        completer.setFilterMode(Qt.MatchFlag.MatchContains)
+        completer.setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
+        combo.setCompleter(completer)
 
     def init_ui(self):
         main_layout = QVBoxLayout(self)
@@ -180,10 +206,18 @@ class ElectricPage(QWidget):
         self.brand_combo = QComboBox()
         self.brand_combo.addItem("Загрузка марок...", None)
         self.brand_combo.setEnabled(False)
+        self.make_searchable(
+            self.brand_combo,
+            "Начните вводить марку..."
+        )
 
         self.model_combo = QComboBox()
         self.model_combo.addItem("Сначала выберите марку", None)
         self.model_combo.setEnabled(False)
+        self.make_searchable(
+            self.model_combo,
+            "Начните вводить модель..."
+        )
 
         self.year_input = QSpinBox()
         self.year_input.setRange(1900, 2027)
@@ -220,6 +254,8 @@ class ElectricPage(QWidget):
 
         self.brand_combo.currentIndexChanged.connect(
             self.on_brand_changed)
+        self.model_combo.currentIndexChanged.connect(
+            self.update_search_button)
         self.search_button.clicked.connect(
             self.start_search)
 
@@ -264,6 +300,40 @@ class ElectricPage(QWidget):
                 border: 1px solid #0078d4;
             }
 
+            /* Более широкая и удобная зона раскрытия списка. */
+            QComboBox::drop-down {
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 36px;
+                border-left: 1px solid #505050;
+                border-top-right-radius: 7px;
+                border-bottom-right-radius: 7px;
+            }
+
+
+            QComboBox QLineEdit {
+                padding-right: 36px;
+            }
+
+            QToolButton#comboArrowButton {
+                color: #E8E8E8;
+                background-color: #353535;
+                border: none;
+                border-left: 1px solid #505050;
+                border-top-right-radius: 7px;
+                border-bottom-right-radius: 7px;
+                font-size: 11px;
+                padding: 0px;
+            }
+
+            QToolButton#comboArrowButton:hover {
+                background-color: #454545;
+            }
+
+            QToolButton#comboArrowButton:disabled {
+                color: #777777;
+            }
+
             QComboBox QAbstractItemView {
                 background-color: #353535;
                 color: white;
@@ -294,6 +364,37 @@ class ElectricPage(QWidget):
             }
         """)
 
+        # Отдельная кнопка со стрелкой поверх правой части каждого списка.
+        for combo in self.findChildren(QComboBox):
+            arrow_button = QToolButton(combo)
+            arrow_button.setObjectName("comboArrowButton")
+            arrow_button.setText("▼")
+            arrow_button.setCursor(Qt.CursorShape.PointingHandCursor)
+            arrow_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            arrow_button.clicked.connect(
+                lambda checked=False, current_combo=combo: current_combo.showPopup()
+            )
+            combo.installEventFilter(self)
+            self._position_combo_arrow(combo)
+
+    @staticmethod
+    def _position_combo_arrow(combo):
+        arrow_button = combo.findChild(QToolButton, "comboArrowButton")
+        if arrow_button is not None:
+            button_width = min(36, combo.width())
+            arrow_button.setGeometry(
+                combo.width() - button_width - 1,
+                1,
+                button_width,
+                max(0, combo.height() - 2),
+            )
+            arrow_button.raise_()
+
+    def eventFilter(self, watched, event):
+        if isinstance(watched, QComboBox) and event.type() == QEvent.Type.Resize:
+            self._position_combo_arrow(watched)
+        return super().eventFilter(watched, event)
+
     def run_loader(self, function, callback, *args):
         worker = DataLoader(function, *args)
         self._workers.append(worker)
@@ -318,7 +419,7 @@ class ElectricPage(QWidget):
         electric_marks = [
             item for item in marks
             if isinstance(item, dict)
-            and get_brand_key(item.get("name", "")) in ELECTRIC_MODELS]
+               and get_brand_key(item.get("name", "")) in ELECTRIC_MODELS]
 
         self.fill_combo(self.brand_combo, electric_marks)
         self.brand_combo.setEnabled(bool(electric_marks))
@@ -363,6 +464,15 @@ class ElectricPage(QWidget):
     def on_brand_changed(self, index):
         brand_id = self.brand_combo.currentData()
         if brand_id is None:
+            self.model_combo.blockSignals(True)
+            self.model_combo.clear()
+            self.model_combo.addItem(
+                tr("Сначала выберите марку"),
+                None
+            )
+            self.model_combo.blockSignals(False)
+            self.model_combo.setEnabled(False)
+            self.search_button.setEnabled(False)
             return
         self.model_combo.clear()
         self.model_combo.addItem(tr("Загрузка моделей..."), None)
@@ -381,7 +491,7 @@ class ElectricPage(QWidget):
         electric_models = [
             item for item in models
             if isinstance(item, dict)
-            and is_electric_model(item.get("name", ""), allowed_models)]
+               and is_electric_model(item.get("name", ""), allowed_models)]
         self.fill_combo(self.model_combo, electric_models)
         self.model_combo.setEnabled(bool(electric_models))
         if electric_models:
@@ -394,9 +504,9 @@ class ElectricPage(QWidget):
 
     def update_search_button(self):
         ready = (
-            self.brand_combo.currentData() is not None
-            and self.model_combo.currentData() is not None
-            and self.electric_fuel_id is not None)
+                self.brand_combo.currentData() is not None
+                and self.model_combo.currentData() is not None
+                and self.electric_fuel_id is not None)
         self.search_button.setEnabled(ready)
 
     def on_loading_error(self, error):
