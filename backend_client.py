@@ -18,6 +18,7 @@ class BackendClient:
             or os.getenv("BACKEND_BASE_URL")
             or "http://127.0.0.1:8000"
         ).rstrip("/")
+        self.api_token = os.getenv("BACKEND_API_TOKEN")
 
         # Тайм-аут для обычных запросов
         self.timeout = (5, 20)
@@ -39,11 +40,19 @@ class BackendClient:
         url = f"{self.base_url}{endpoint}"
 
         try:
+            if not self.api_token:
+                raise BackendError(
+                    "Не задан BACKEND_API_TOKEN в файле .env."
+                )
+
             response = requests.request(
                 method=method,
                 url=url,
                 params=params,
                 json=payload,
+                headers={
+                    "Authorization": f"Bearer {self.api_token}"
+                },
                 timeout=timeout or self.timeout,
             )
 
