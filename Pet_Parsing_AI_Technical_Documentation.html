@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pet_Parsing_AI — техническая документация</title>
+<style>
+:root {
+  --bg: #0d1117; --panel: #151b23; --panel2: #10161e; --line: #303b49;
+  --text: #e6edf3; --muted: #9ba8b7; --accent: #ff9b45; --blue: #65a9ff;
+  --green: #4cc38a; --red: #ff7b72; --code: #0a0f15;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.65 Inter, "Segoe UI", Arial, sans-serif;
+}
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); min-height: 100vh; }
+aside {
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  padding: 26px 18px; background: #0a0f15; border-right: 1px solid var(--line);
+}
+.brand { font-weight: 800; font-size: 19px; color: white; line-height: 1.25; }
+.brand span { display: block; color: var(--accent); font-size: 12px; letter-spacing: .12em; margin-top: 7px; }
+.nav-label { margin: 25px 0 8px; color: #718096; font-size: 11px; text-transform: uppercase; letter-spacing: .13em; }
+nav a { display: block; color: #b8c3d0; padding: 7px 10px; margin: 2px 0; border-radius: 7px; font-size: 13px; }
+nav a:hover { color: white; background: #182230; text-decoration: none; }
+main { width: min(1160px, 100%); padding: 42px clamp(22px, 5vw, 68px) 90px; }
+.hero {
+  padding: 34px; border: 1px solid #4a3b2c; border-radius: 18px;
+  background: radial-gradient(circle at 90% 10%, #47301d 0, transparent 36%), linear-gradient(135deg,#1b222c,#111821);
+}
+.eyebrow { color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+h1 { margin: 8px 0 12px; font-size: clamp(30px, 4vw, 46px); line-height: 1.1; }
+h2 { margin-top: 58px; padding-bottom: 12px; border-bottom: 1px solid var(--line); font-size: 27px; }
+h3 { margin-top: 30px; font-size: 19px; color: #f0f4f8; }
+h4 { margin-bottom: 7px; color: #f0f4f8; }
+p { color: #c7d0da; }
+.lead { max-width: 850px; font-size: 17px; color: #c8d2de; }
+.tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+.tag { border: 1px solid #465364; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: #dce5ef; background: #18212c; }
+.grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin: 18px 0; }
+.card { padding: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.card p { margin-bottom: 0; }
+.callout { padding: 15px 18px; margin: 18px 0; border-left: 3px solid var(--accent); background: #201a14; border-radius: 0 9px 9px 0; color: #e6d4c2; }
+.callout.warn { border-color: var(--red); background: #241718; color: #f0cece; }
+.callout.good { border-color: var(--green); background: #14231d; color: #ccebdc; }
+code, pre { font-family: Consolas, "Cascadia Code", monospace; }
+code { color: #ffca8c; background: #202833; padding: 2px 5px; border-radius: 4px; font-size: .92em; }
+pre { background: var(--code); border: 1px solid var(--line); border-radius: 10px; padding: 17px; overflow-x: auto; color: #d7e0ea; font-size: 13px; line-height: 1.55; }
+table { width: 100%; border-collapse: collapse; margin: 16px 0 25px; font-size: 13px; }
+th, td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 10px 12px; }
+th { color: #f2b77d; background: #171f29; font-weight: 700; }
+td { color: #c8d2de; }
+.tree { white-space: pre; font: 13px/1.7 Consolas, monospace; background: var(--code); border: 1px solid var(--line); border-radius: 10px; padding: 20px; overflow-x: auto; color: #c8d2de; }
+.diagram { display: grid; gap: 12px; margin: 22px 0; }
+.layer { border: 1px solid var(--line); background: var(--panel); padding: 17px; border-radius: 12px; text-align: center; }
+.layer strong { display: block; color: #fff; font-size: 16px; }
+.layer small { color: var(--muted); }
+.arrow { text-align: center; color: var(--accent); font-size: 22px; line-height: 1; }
+.two { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.pill { display: inline-block; border-radius: 6px; padding: 2px 7px; font-size: 11px; background: #183328; color: #8ce0b6; }
+footer { margin-top: 70px; padding-top: 18px; border-top: 1px solid var(--line); color: #718096; font-size: 12px; }
+@media(max-width: 850px) {
+ .layout { display: block; }
+ aside { position: relative; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+ nav { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .nav-label { grid-column: 1/-1; }
+ main { padding-top: 24px; }
+}
+@media(max-width: 580px) { .grid,.two { grid-template-columns: 1fr; } .hero { padding: 23px; } nav { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <div class="brand">Pet_Parsing_AI<span>TECHNICAL DOCUMENTATION</span></div>
+  <div class="nav-label">Документация</div>
+  <nav>
+    <a href="#overview">Обзор</a>
+    <a href="#architecture">Архитектура</a>
+    <a href="#flow">Путь запроса</a>
+    <a href="#folders">Структура проекта</a>
+    <a href="#files-ui">Desktop UI</a>
+    <a href="#files-backend">Backend</a>
+    <a href="#api">API endpoints</a>
+    <a href="#database">База данных</a>
+    <a href="#technologies">Технологии</a>
+    <a href="#config">Конфигурация</a>
+    <a href="#deployment">Развёртывание</a>
+    <a href="#security">Безопасность</a>
+    <a href="#limitations">Ограничения</a>
+  </nav>
+</aside>
+<main>
+<section class="hero" id="overview">
+  <div class="eyebrow">Project handbook · archive review</div>
+  <h1>AUTO.RIA Analyzer</h1>
+  <p class="lead">Техническая документация проекта Pet_Parsing_AI: назначение модулей, слои архитектуры, взаимодействие desktop-клиента с FastAPI, интеграции с AUTO.RIA и OpenAI, хранение данных и варианты развёртывания.</p>
+  <div class="tags">
+    <span class="tag">Python 3.14</span><span class="tag">PySide6 Desktop</span>
+    <span class="tag">FastAPI</span><span class="tag">PostgreSQL 17</span>
+    <span class="tag">Docker Compose</span><span class="tag">OpenAI API</span>
+  </div>
+</section>
+
+<section>
+<h2>1. Назначение проекта</h2>
+<p>Pet_Parsing_AI — desktop-приложение для поиска автомобилей на AUTO.RIA, получения подробностей объявлений, сохранения результатов и формирования AI-анализа рынка.</p>
+<div class="grid">
+  <div class="card"><h3>Поиск ДВС / гибридов</h3><p>Форма поиска автомобилей с двигателями внутреннего сгорания и гибридных автомобилей. Используются марка, модель, год, пробег, топливо, объём двигателя, коробка передач и привод.</p></div>
+  <div class="card"><h3>Поиск электромобилей</h3><p>Отдельная форма поиска электрических автомобилей. Справочники марок, моделей и типов топлива загружаются через backend.</p></div>
+  <div class="card"><h3>Сбор данных и история</h3><p>Backend получает идентификаторы объявлений, загружает карточки автомобилей, преобразует ответы API и сохраняет историю поиска в PostgreSQL.</p></div>
+  <div class="card"><h3>AI-анализ рынка</h3><p>Собранные объявления упаковываются в JSON и передаются в OpenAI API. Текст анализа сохраняется вместе с записью поиска.</p></div>
+</div>
+</section>
+
+<section id="architecture">
+<h2>2. Архитектура</h2>
+<p>В проекте разделены пользовательский интерфейс, HTTP-клиент, серверный API, бизнес-логика, интеграции, слой доступа к данным и база данных.</p>
+<div class="diagram">
+  <div class="layer"><strong>Desktop UI — app/</strong><small>PySide6 + PyQt-Fluent-Widgets · формы, результаты, история, темы, локализация</small></div>
+  <div class="arrow">⇅ HTTP(S) · JSON · Bearer token</div>
+  <div class="layer"><strong>Backend client — backend_client.py</strong><small>requests · формирует HTTP-запросы к FastAPI, добавляет токен и обрабатывает ошибки</small></div>
+  <div class="arrow">⇅</div>
+  <div class="layer"><strong>API layer — backend/routers + schemas</strong><small>FastAPI · маршруты · Pydantic-валидация входных и выходных данных</small></div>
+  <div class="arrow">⇅</div>
+  <div class="layer"><strong>Service layer — backend/services</strong><small>SearchService · сбор объявлений · преобразование данных · сохранение результатов · AI-анализ</small></div>
+  <div class="two">
+    <div class="layer"><strong>Integrations</strong><small>AUTO.RIA API · OpenAI API</small></div>
+    <div class="layer"><strong>Repository / ORM</strong><small>SearchRepository · SQLAlchemy models</small></div>
+  </div>
+  <div class="arrow">⇅</div>
+  <div class="layer"><strong>PostgreSQL 17</strong><small>таблицы searches и search_cars · Docker volume postgres_data</small></div>
+</div>
+<div class="callout good"><strong>Ключевое разделение:</strong> desktop-приложение не подключается напрямую к PostgreSQL и не обращается напрямую к AUTO.RIA/OpenAI. Оно отправляет запросы в FastAPI backend. Внешние API и база данных используются серверной частью.</div>
+</section>
+
+<section id="flow">
+<h2>3. Как проходит один поиск</h2>
+<ol>
+  <li>Пользователь выбирает параметры на странице ДВС/гибридов или электромобилей.</li>
+  <li>Страница получает справочники через <code>BackendClient</code>. Длительные операции загрузки справочников выполняются в потоках <code>QThread</code>.</li>
+  <li>При запуске поиска <code>MainWindow</code> создаёт <code>SearchWorker</code>. Он выполняет HTTP-запрос в фоновом потоке, чтобы интерфейс не зависал.</li>
+  <li><code>BackendClient</code> отправляет <code>POST /searches/</code> с JSON и заголовком <code>Authorization: Bearer ...</code>.</li>
+  <li>FastAPI проверяет токен, валидирует данные через <code>SearchRequest</code> и передаёт запрос в <code>SearchService</code>.</li>
+  <li><code>SearchService</code> создаёт запись поиска через <code>SearchRepository</code>, формирует фильтры и вызывает интеграцию AUTO.RIA.</li>
+  <li><code>ria_client.py</code> запрашивает список ID объявлений и подробности каждого автомобиля. <code>car_parser.py</code> преобразует ответы API в dataclass-объекты автомобилей.</li>
+  <li>Сервис формирует JSON с рыночными данными, сохраняет его в папку <code>search/</code> и записывает найденные автомобили в PostgreSQL.</li>
+  <li><code>market_analyzer.py</code> формирует инструкции и входной текст, а <code>openai_client.py</code> отправляет запрос в OpenAI API.</li>
+  <li>Текст AI-анализа сохраняется в файл TXT и в запись поиска. Backend возвращает результат клиенту.</li>
+  <li><code>ResultsPage</code> отображает найденные автомобили и анализ. <code>HistoryPage</code> получает список предыдущих поисков и их подробности через API.</li>
+</ol>
+<div class="callout">Тайм-аут клиентского запроса на поиск установлен в <code>(5, 600)</code> секунд. При удалённом размещении reverse proxy должен поддерживать достаточно длинное ожидание ответа.</div>
+</section>
+
+<section id="folders">
+<h2>4. Структура проекта</h2>
+<div class="tree">Pet_Parsing_AI/
+│
+├── app/                         # Desktop-приложение
+│   ├── localization.py          # Переводы RU / UK / EN
+│   └── ui/
+│       ├── assets/              # Иконки и фоновые изображения
+│       ├── combustion_page.py   # Форма поиска ДВС / гибридов
+│       ├── electric_page.py     # Форма поиска электромобилей
+│       ├── history_page.py      # История поисков
+│       ├── home_page.py         # Главная страница
+│       ├── main_window.py       # Главное окно и навигация
+│       ├── results_page.py      # Результаты поиска
+│       ├── search_worker.py     # Фоновый поток запуска поиска
+│       ├── theme_dialog.py      # Окно выбора оформления
+│       └── theme_manager.py     # Настройки тем и фонов
+│
+├── backend/                     # Серверная часть
+│   ├── entities/                # Доменные dataclass-сущности
+│   ├── integrations/            # Клиенты внешних API
+│   ├── models/                  # ORM-модели SQLAlchemy
+│   ├── repositories/             # Доступ к данным
+│   ├── routers/                 # HTTP-маршруты FastAPI
+│   ├── schemas/                 # Pydantic-схемы
+│   ├── services/                # Бизнес-логика
+│   ├── config.py                # Переменные окружения и пути
+│   ├── database.py              # Engine, SessionLocal, get_db
+│   ├── main.py                  # Создание FastAPI-приложения
+│   └── security.py              # Проверка Bearer-токена
+│
+├── backend_client.py            # HTTP-клиент desktop -> backend
+├── Dockerfile_backend           # Сборка backend image
+├── docker-compose.yml           # Backend + PostgreSQL
+├── requirements.txt             # Зависимости desktop и общего проекта
+├── requirements-backend.txt     # Зависимости backend-контейнера
+├── .env.example                 # Шаблон переменных окружения
+├── .gitignore                   # Исключения Git
+├── .dockerignore                # Исключения Docker build context
+├── build_pet_parsing_ai.ps1     # Сборка Windows-приложения
+├── BUILD_AUTO_RIA_ANALYZER.bat  # Запуск PowerShell-сборщика
+├── load_env_runtime_hook.py     # Загрузка .env в PyInstaller-сборке
+├── AUTO_RIA_Analyzer.ico        # Иконка приложения
+├── README.md                    # Установка и запуск
+└── README_EXE.md                # Инструкция по сборке EXE</div>
+<p>В архиве также присутствуют сгенерированные Python-каталоги <code>__pycache__</code> и файл <code>app.log</code>. Они не являются исходными модулями и не должны использоваться как часть архитектуры или включаться в Git.</p>
+</section>
+
+<section id="files-ui">
+<h2>5. Desktop UI — папка app/</h2>
+<table>
+<thead><tr><th>Файл</th><th>Назначение</th><th>Основные обязанности</th></tr></thead>
+<tbody>
+<tr><td><code>app/ui/main_window.py</code></td><td>Главное окно приложения</td><td>Создаёт окно, навигацию, страницы, переключатель языка и темы; связывает события; запускает SearchWorker и передаёт результат странице результатов.</td></tr>
+<tr><td><code>app/ui/home_page.py</code></td><td>Главная страница</td><td>Показывает карточки перехода к поиску автомобилей с ДВС/гибридом или электромобилей.</td></tr>
+<tr><td><code>app/ui/combustion_page.py</code></td><td>Форма поиска ДВС</td><td>Загружает марки, модели, топливо, КПП и привод через BackendClient; собирает параметры поиска.</td></tr>
+<tr><td><code>app/ui/electric_page.py</code></td><td>Форма поиска электромобилей</td><td>Загружает справочники и формирует параметры поиска электрических автомобилей.</td></tr>
+<tr><td><code>app/ui/results_page.py</code></td><td>Экран результатов</td><td>Отображает карточки найденных автомобилей, характеристики, цены, фотографии, ссылки и AI-анализ.</td></tr>
+<tr><td><code>app/ui/history_page.py</code></td><td>История</td><td>Получает историю поисков и подробности отдельного поиска через backend.</td></tr>
+<tr><td><code>app/ui/search_worker.py</code></td><td>Фоновый поиск</td><td>QThread, который отправляет запрос в backend и сообщает UI о прогрессе, результате или ошибке.</td></tr>
+<tr><td><code>app/ui/theme_manager.py</code></td><td>Оформление</td><td>Читает и сохраняет пользовательские настройки темы, фона, размытия и затемнения через QSettings.</td></tr>
+<tr><td><code>app/ui/theme_dialog.py</code></td><td>Диалог темы</td><td>Позволяет выбрать фон и настроить параметры отображения.</td></tr>
+<tr><td><code>app/localization.py</code></td><td>Локализация</td><td>Переводит интерфейс на русский, украинский и английский языки; хранит выбранный язык через QSettings.</td></tr>
+<tr><td><code>app/ui/assets/</code></td><td>Ресурсы интерфейса</td><td>Содержит <code>muscle_car.png</code> и пять фоновых изображений <code>background1.jpg</code>–<code>background5.jpg</code>.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="files-backend">
+<h2>6. Backend — папка backend/</h2>
+<h3>Точка входа и конфигурация</h3>
+<table>
+<thead><tr><th>Файл</th><th>Назначение</th></tr></thead>
+<tbody>
+<tr><td><code>backend/main.py</code></td><td>Создаёт FastAPI-приложение, подключает routers и задаёт глобальную проверку Bearer-токена.</td></tr>
+<tr><td><code>backend/config.py</code></td><td>Загружает настройки окружения, проверяет наличие AUTO.RIA/OpenAI/DB ключей и задаёт каталог <code>search/</code>.</td></tr>
+<tr><td><code>backend/database.py</code></td><td>Формирует PostgreSQL URL, создаёт SQLAlchemy engine и sessionmaker, предоставляет dependency <code>get_db()</code>.</td></tr>
+<tr><td><code>backend/security.py</code></td><td>Сравнивает переданный Bearer-токен с <code>BACKEND_API_TOKEN</code> через <code>secrets.compare_digest</code>.</td></tr>
+</tbody>
+</table>
+
+<h3>Папки backend</h3>
+<table>
+<thead><tr><th>Папка / файл</th><th>Назначение</th></tr></thead>
+<tbody>
+<tr><td><code>entities/car.py</code></td><td>Доменные dataclass-классы <code>Car</code>, <code>CombustionCar</code> и <code>ElectricCar</code>.</td></tr>
+<tr><td><code>integrations/ria_client.py</code></td><td>HTTP-функции для AUTO.RIA API: марки, модели, справочники, поиск ID объявлений и получение подробностей.</td></tr>
+<tr><td><code>integrations/openai_client.py</code></td><td>Создаёт OpenAI-клиент и вызывает Responses API для получения текста анализа.</td></tr>
+<tr><td><code>models/search.py</code></td><td>SQLAlchemy-модель таблицы <code>searches</code>: параметры поиска, время, статус, GPT-анализ и имя модели.</td></tr>
+<tr><td><code>models/car.py</code></td><td>SQLAlchemy-модель <code>SearchCar</code> для найденных объявлений и связи с поиском.</td></tr>
+<tr><td><code>repositories/search_repository.py</code></td><td>Создаёт поиск, сохраняет найденные автомобили, обновляет статус, возвращает историю и подробности.</td></tr>
+<tr><td><code>routers/health.py</code></td><td>Маршруты проверки backend и соединения с БД.</td></tr>
+<tr><td><code>routers/dictionaries.py</code></td><td>Маршруты получения справочников AUTO.RIA.</td></tr>
+<tr><td><code>routers/searches.py</code></td><td>Маршрут <code>POST /searches/</code>, который принимает SearchRequest и запускает SearchService.</td></tr>
+<tr><td><code>routers/history.py</code></td><td>Маршруты получения списка истории и подробностей поиска.</td></tr>
+<tr><td><code>schemas/car.py</code></td><td>Pydantic-схемы данных автомобиля для API-ответов.</td></tr>
+<tr><td><code>schemas/search.py</code></td><td>Pydantic-схемы SearchRequest, SearchResult, SearchHistoryItem и SearchRead.</td></tr>
+<tr><td><code>services/car_parser.py</code></td><td>Преобразует JSON AUTO.RIA в объекты Car/CombustionCar/ElectricCar.</td></tr>
+<tr><td><code>services/car_filter.py</code></td><td>Содержит методы локальной фильтрации уже созданных объектов автомобилей.</td></tr>
+<tr><td><code>services/search_service.py</code></td><td>Оркестрирует полный процесс поиска: фильтры, сбор ID, загрузку карточек, сохранение, AI-анализ и формирование ответа.</td></tr>
+<tr><td><code>services/market_analyzer.py</code></td><td>Формирует payload и инструкции, вызывает OpenAI-анализ, сохраняет JSON и текстовый результат.</td></tr>
+</tbody>
+</table>
+<div class="callout">По текущему коду <code>CarFilter</code> находится в проекте как отдельный сервисный класс, но <code>SearchService</code> не импортирует и не вызывает его в основном сценарии поиска. Не следует считать его частью активного конвейера, пока он не подключён.</div>
+</section>
+
+<section id="api">
+<h2>7. Backend API</h2>
+<p>FastAPI-приложение создаётся в <code>backend/main.py</code>. Все маршруты приложения защищены общей зависимостью <code>verify_api_token</code>, поэтому клиент должен отправлять Bearer-токен.</p>
+<table>
+<thead><tr><th>HTTP</th><th>Маршрут</th><th>Что делает</th></tr></thead>
+<tbody>
+<tr><td>GET</td><td><code>/health</code></td><td>Возвращает состояние backend.</td></tr>
+<tr><td>GET</td><td><code>/health/db</code></td><td>Выполняет SELECT 1 и проверяет подключение к PostgreSQL.</td></tr>
+<tr><td>GET</td><td><code>/dictionaries/marks</code></td><td>Получает список марок.</td></tr>
+<tr><td>GET</td><td><code>/dictionaries/models?brand_id=ID</code></td><td>Получает модели выбранной марки.</td></tr>
+<tr><td>GET</td><td><code>/dictionaries/fuel-types</code></td><td>Получает типы топлива.</td></tr>
+<tr><td>GET</td><td><code>/dictionaries/gearboxes</code></td><td>Получает коробки передач.</td></tr>
+<tr><td>GET</td><td><code>/dictionaries/drive-types</code></td><td>Получает типы привода.</td></tr>
+<tr><td>POST</td><td><code>/searches/</code></td><td>Запускает поиск объявлений и AI-анализ.</td></tr>
+<tr><td>GET</td><td><code>/history/</code></td><td>Возвращает список поисков; поддерживает skip и limit.</td></tr>
+<tr><td>GET</td><td><code>/history/{search_id}</code></td><td>Возвращает параметры, анализ и автомобили конкретного поиска.</td></tr>
+</tbody>
+</table>
+<h3>Пример запроса авторизации</h3>
+<pre>Authorization: Bearer YOUR_BACKEND_API_TOKEN</pre>
+<p>Desktop-клиент формирует этот заголовок внутри <code>backend_client.py</code>. Для ручной проверки API его нужно передать самостоятельно.</p>
+</section>
+
+<section id="database">
+<h2>8. База данных и хранение результатов</h2>
+<h3>PostgreSQL</h3>
+<p>Docker Compose использует образ <code>postgres:17-alpine</code>. Данные PostgreSQL сохраняются в именованном Docker volume <code>postgres_data</code>.</p>
+<table>
+<thead><tr><th>Таблица</th><th>Модель</th><th>Содержимое</th></tr></thead>
+<tbody>
+<tr><td><code>searches</code></td><td><code>Search</code></td><td>ID, дата создания, статус, JSON-параметры поиска, текст AI-анализа и название модели.</td></tr>
+<tr><td><code>search_cars</code></td><td><code>SearchCar</code></td><td>Объявления, найденные в рамках поиска: ID AUTO.RIA, марка, модель, год, пробег, цены, тип топлива, URL, фото и raw JSON.</td></tr>
+</tbody>
+</table>
+<p>Между таблицами связь один-ко-многим: один поиск может содержать несколько найденных автомобилей. В <code>SearchCar</code> задано ограничение уникальности пары <code>search_id + car_id</code>.</p>
+<h3>Файловые результаты</h3>
+<p>Кроме PostgreSQL, сервис сохраняет JSON с данными рынка и TXT с AI-анализом в каталог <code>search/</code> относительно корня backend-проекта. В текущем Compose для этой папки не настроен отдельный volume: файлы внутри контейнера могут исчезнуть при пересоздании контейнера. Для долговременного хранения нужно добавить bind mount, например <code>./search:/app/search</code>, в секцию volumes сервиса backend.</p>
+<h3>Инициализация схемы</h3>
+<div class="callout warn">В архиве нет Alembic и нет автоматического создания таблиц при старте. Для чистой БД один раз запускается <code>Base.metadata.create_all()</code> с импортом <code>backend.models</code>. Для дальнейших изменений схемы рекомендуется внедрить миграции.</div>
+<pre>docker compose exec backend python -c "import backend.models; from backend.database import Base, engine; Base.metadata.create_all(bind=engine)"</pre>
+</section>
+
+<section id="technologies">
+<h2>9. Используемые технологии</h2>
+<table>
+<thead><tr><th>Технология</th><th>Где используется</th><th>Зачем нужна</th></tr></thead>
+<tbody>
+<tr><td><strong>Python 3.14</strong></td><td>Desktop и backend</td><td>Основной язык приложения и серверной логики.</td></tr>
+<tr><td><strong>PySide6</strong></td><td>Desktop UI</td><td>Qt bindings для создания окон, форм, элементов интерфейса и потоков.</td></tr>
+<tr><td><strong>PyQt-Fluent-Widgets</strong></td><td>Desktop UI</td><td>Готовые Fluent-компоненты и навигация интерфейса.</td></tr>
+<tr><td><strong>QThread / Qt Signals</strong></td><td>Desktop UI</td><td>Выполнение сетевых операций в фоне без блокировки интерфейса.</td></tr>
+<tr><td><strong>QSettings</strong></td><td>Desktop UI</td><td>Сохранение настроек языка и оформления между запусками.</td></tr>
+<tr><td><strong>requests</strong></td><td>Desktop client и integrations</td><td>HTTP-запросы к FastAPI и AUTO.RIA API.</td></tr>
+<tr><td><strong>FastAPI</strong></td><td>Backend</td><td>Создание HTTP API и маршрутов для desktop-клиента.</td></tr>
+<tr><td><strong>Uvicorn</strong></td><td>Backend container</td><td>ASGI-сервер, который запускает FastAPI.</td></tr>
+<tr><td><strong>Pydantic</strong></td><td>Backend schemas</td><td>Проверка входящих параметров и структура API-ответов.</td></tr>
+<tr><td><strong>SQLAlchemy 2</strong></td><td>Backend persistence</td><td>ORM-модели, запросы к БД и управление сессиями.</td></tr>
+<tr><td><strong>psycopg 3</strong></td><td>Backend persistence</td><td>PostgreSQL-драйвер для SQLAlchemy.</td></tr>
+<tr><td><strong>PostgreSQL 17</strong></td><td>Database container</td><td>Хранение истории поисков и найденных объявлений.</td></tr>
+<tr><td><strong>Docker / Compose</strong></td><td>Deployment</td><td>Сборка backend image и совместный запуск backend + PostgreSQL.</td></tr>
+<tr><td><strong>python-dotenv</strong></td><td>Configuration</td><td>Загрузка переменных из локального файла .env.</td></tr>
+<tr><td><strong>OpenAI Python SDK</strong></td><td>AI integration</td><td>Вызов OpenAI Responses API для анализа рынка.</td></tr>
+<tr><td><strong>AUTO.RIA API</strong></td><td>External integration</td><td>Получение справочников, поиска объявлений и подробностей автомобилей.</td></tr>
+<tr><td><strong>PyInstaller</strong></td><td>Windows build</td><td>Сборка desktop-приложения в Windows EXE-папку формата onedir.</td></tr>
+<tr><td><strong>PowerShell / BAT</strong></td><td>Windows build</td><td>Автоматизация проверки ресурсов, сборки, копирования .env и создания ярлыка.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="config">
+<h2>10. Конфигурация и ключевые файлы запуска</h2>
+<table>
+<thead><tr><th>Файл</th><th>Роль</th></tr></thead>
+<tbody>
+<tr><td><code>.env.example</code></td><td>Шаблон переменных окружения. В текущем архиве нужно дополнить его строками <code>BACKEND_API_TOKEN</code> и <code>BACKEND_BASE_URL</code>.</td></tr>
+<tr><td><code>.env</code></td><td>Реальные локальные секреты и адреса. Не коммитить в Git.</td></tr>
+<tr><td><code>requirements.txt</code></td><td>Полный набор закреплённых зависимостей для запуска desktop-клиента и общих модулей.</td></tr>
+<tr><td><code>requirements-backend.txt</code></td><td>Зависимости, устанавливаемые в Docker-образ backend.</td></tr>
+<tr><td><code>Dockerfile_backend</code></td><td>Создаёт образ на базе Python 3.14 slim, устанавливает backend-зависимости и запускает Uvicorn.</td></tr>
+<tr><td><code>docker-compose.yml</code></td><td>Запускает PostgreSQL и backend, задаёт переменные окружения, healthcheck и volume базы.</td></tr>
+<tr><td><code>.dockerignore</code></td><td>Исключает .env, Git, виртуальное окружение, кэш и логи из Docker build context.</td></tr>
+<tr><td><code>.gitignore</code></td><td>Исключает виртуальные окружения, секреты, кэш, сборки, логи, дампы и локальные базы из Git.</td></tr>
+<tr><td><code>backend_client.py</code></td><td>Единая точка HTTP-взаимодействия GUI с FastAPI.</td></tr>
+<tr><td><code>build_pet_parsing_ai.ps1</code></td><td>Проверяет ресурсы, запускает PyInstaller, копирует .env и assets, создаёт ярлык Windows.</td></tr>
+<tr><td><code>BUILD_AUTO_RIA_ANALYZER.bat</code></td><td>Упрощает запуск PowerShell-сборщика двойным щелчком.</td></tr>
+<tr><td><code>load_env_runtime_hook.py</code></td><td>Загружает .env до импорта модулей упакованного приложения.</td></tr>
+<tr><td><code>README_EXE.md</code></td><td>Краткая инструкция по сборке EXE из исходного проекта.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="deployment">
+<h2>11. Модель развёртывания</h2>
+<div class="grid">
+  <div class="card">
+    <h3>Локальная разработка</h3>
+    <p>Windows-компьютер запускает Docker Compose (PostgreSQL + FastAPI) и desktop UI. Клиент обращается к <code>http://127.0.0.1:8000</code>.</p>
+    <span class="pill">Подходит для разработки</span>
+  </div>
+  <div class="card">
+    <h3>Удалённый backend</h3>
+    <p>VPS запускает PostgreSQL и FastAPI. Windows-клиент обращается к домену API по HTTPS через reverse proxy.</p>
+    <span class="pill">Подходит для удалённого доступа</span>
+  </div>
+</div>
+<h3>Что именно размещать на VPS</h3>
+<ul>
+<li>Репозиторий проекта или его серверную копию, необходимую текущему Docker build context.</li>
+<li>Серверный <code>.env</code>, созданный на сервере.</li>
+<li>Docker-контейнер FastAPI и PostgreSQL.</li>
+<li>Постоянный volume PostgreSQL.</li>
+<li>Reverse proxy и TLS-сертификат — настраиваются отдельно.</li>
+</ul>
+<h3>Что остаётся у пользователя</h3>
+<ul>
+<li>Исходный GUI или папка <code>dist/Pet_Parsing_AI/</code>.</li>
+<li>Клиентский <code>.env</code> с <code>BACKEND_BASE_URL</code> и <code>BACKEND_API_TOKEN</code>.</li>
+</ul>
+<div class="callout warn"><strong>Не путать:</strong> EXE — это desktop-клиент. Он не заменяет backend и не содержит PostgreSQL-сервер. Для работы поиска удалённый backend должен быть доступен по HTTPS.</div>
+</section>
+
+<section id="security">
+<h2>12. Безопасность</h2>
+<ul>
+<li>API-ключ AUTO.RIA и ключ OpenAI должны находиться на backend, а не в публичном репозитории.</li>
+<li>PostgreSQL не должен быть доступен напрямую из интернета. В текущем Compose порт базы не публикуется наружу.</li>
+<li>Внешний доступ к FastAPI рекомендуется организовать через HTTPS reverse proxy.</li>
+<li>Секреты хранятся в `.env`, который исключён из Git и Docker build context.</li>
+<li>Текущая авторизация использует один общий Bearer-токен. Он не является пользовательской системой аутентификации.</li>
+<li>Сборщик EXE копирует весь исходный `.env`. Если в нём есть серверные секреты, они попадут в дистрибутив.</li>
+</ul>
+</section>
+
+<section id="limitations">
+<h2>13. Что следует улучшить перед публичным запуском</h2>
+<table>
+<thead><tr><th>Область</th><th>Текущее состояние в архиве</th><th>Рекомендуемое улучшение</th></tr></thead>
+<tbody>
+<tr><td>Миграции БД</td><td>Автоматических миграций нет; таблицы создаются вручную через SQLAlchemy.</td><td>Добавить Alembic и версионируемые миграции.</td></tr>
+<tr><td>Авторизация</td><td>Общий статический Bearer-токен.</td><td>Индивидуальные пользователи, токены, отзыв и ротация доступа.</td></tr>
+<tr><td>Публичный доступ</td><td>В Compose backend привязан к 127.0.0.1.</td><td>Настроить HTTPS reverse proxy и firewall.</td></tr>
+<tr><td>EXE secrets</td><td>Сборщик копирует весь .env.</td><td>Разделить серверную и клиентскую конфигурацию; не встраивать секреты внешних API в клиент.</td></tr>
+<tr><td>Файловые результаты</td><td>Каталог search не подключён как volume.</td><td>Добавить постоянное хранилище для JSON/TXT, если они нужны после пересоздания контейнера.</td></tr>
+<tr><td>Автоматические проверки</td><td>Тестовая папка в архиве отсутствует.</td><td>Добавить unit/integration tests для API, парсера и репозитория.</td></tr>
+<tr><td>Логирование</td><td>Интеграция AUTO.RIA пишет ошибки в app.log внутри рабочей директории.</td><td>Настроить централизованные структурированные логи и их ротацию.</td></tr>
+</tbody>
+</table>
+</section>
+
+<footer>
+  Документ подготовлен по содержимому архива app.zip. Описание отражает найденную в архиве реализацию; рекомендации по production-развёртыванию помечены отдельно и не означают, что соответствующие конфигурации уже включены в репозиторий.
+</footer>
+</main>
+</div>
+</body>
+</html>
